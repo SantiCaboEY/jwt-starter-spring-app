@@ -4,6 +4,8 @@ import com.platzi.market.web.dto.AuthenticationRequestDTO;
 import com.platzi.market.web.dto.AuthenticationResponseDTO;
 import com.platzi.market.web.dto.UserProfileDTO;
 import com.platzi.market.web.security.JWTUserDetailsService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,15 +20,18 @@ import java.util.Date;
 @RestController
 @CrossOrigin
 public class JWTApiController {
+    private final static Logger logger = LoggerFactory.getLogger(JWTApiController.class);
+
     @Autowired
     private JWTUserDetailsService userDetailsService;
-//    @Autowired
-//    private AuthenticationManager authenticationManager;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-    @GetMapping("/userProfile")
+    @GetMapping("/user")
     public ResponseEntity<UserProfileDTO> getUserProfile(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String token
     ) {
+        logger.info("return default user");
         return ResponseEntity.ok(buildExampleUser());
     }
 
@@ -40,25 +45,21 @@ public class JWTApiController {
                 .build();
     }
 
-    @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponseDTO> authenticateTrivial(
-            @RequestBody AuthenticationRequestDTO request) {
-        return ResponseEntity.ok(new AuthenticationResponseDTO("token"));
-    }
 
-//    @PostMapping("/authenticate")
-//    public ResponseEntity<AuthenticationResponseDTO> authenticateDummyToken(
-//            @RequestBody AuthenticationRequestDTO request) {
-//        try {
-//            authenticationManager.authenticate(
-//                    new UsernamePasswordAuthenticationToken(request.getUser(), request.getPassword())
-//            );
-//        } catch(Exception e){
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-//                    .body(new AuthenticationResponseDTO("Error Authenticating"));
-//        }
-//        String jwtToken = "dummyToken";
-//        return ResponseEntity.ok(new AuthenticationResponseDTO(jwtToken));
-//    }
+    @PostMapping("/authenticate")
+    public ResponseEntity<AuthenticationResponseDTO> authenticateDummyToken(
+            @RequestBody AuthenticationRequestDTO request) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUser(), request.getPassword())
+            );
+        } catch(Exception e){
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new AuthenticationResponseDTO("Error Authenticating"));
+        }
+        String jwtToken = "dummyToken";
+        return ResponseEntity.ok(new AuthenticationResponseDTO(jwtToken));
+    }
 
 }

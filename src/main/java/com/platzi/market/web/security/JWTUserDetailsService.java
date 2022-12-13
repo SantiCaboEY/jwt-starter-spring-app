@@ -16,7 +16,13 @@ public class JWTUserDetailsService implements UserDetailsService {
     private static final Logger logger = LoggerFactory.getLogger(JWTUserDetailsService.class);
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        logger.info("JWTUserDetial");
-        return new User("santi","passwordHash", new ArrayList<>());
+        //Esto emula la obtención de datos del usuario.
+        //En un caso real lo traeríamos de una DB, por ej.
+        //No guardamos el password directamente!
+        //tiene que estar expresado como hash bcrypt
+        return new User(
+                "santi",
+                "$2y$10$rskG.9SkhiIIz0OsMJe64uaqhoWZp/dz/JiH5NsFwYq2jS2T1ZsFe",
+                new ArrayList<>());
     }
 }
