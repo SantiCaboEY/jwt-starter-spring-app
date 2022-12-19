@@ -4,6 +4,7 @@ import com.platzi.market.web.dto.AuthenticationRequestDTO;
 import com.platzi.market.web.dto.AuthenticationResponseDTO;
 import com.platzi.market.web.dto.UserProfileDTO;
 import com.platzi.market.web.security.JWTUserDetailsService;
+import com.platzi.market.web.security.TokenManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -26,20 +28,31 @@ public class JWTApiController {
     private JWTUserDetailsService userDetailsService;
     @Autowired
     private AuthenticationManager authenticationManager;
+    @Autowired
+    private TokenManager tokenManager;
 
-    @GetMapping("/user")
+    @GetMapping("/user/{id}")
     public ResponseEntity<UserProfileDTO> getUserProfile(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String token
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @PathVariable(name = "id") Integer id
     ) {
-        logger.info("return default user");
-        return ResponseEntity.ok(buildExampleUser());
+        return getUserById(id);
     }
 
-    private UserProfileDTO buildExampleUser() {
+    private ResponseEntity<UserProfileDTO> getUserById(Integer id) {
+        if(id.equals(1)){
+            return ResponseEntity.ok(buildExampleUser(1));
+        } else if(id.equals(2)){
+            return ResponseEntity.ok(buildExampleUser(2));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    private UserProfileDTO buildExampleUser(Integer id) {
         return UserProfileDTO.builder()
-                .bio("An average person")
+                .bio("An average person with id=" + id)
                 .birthDay(Date.from(Instant.now()))
-                .name("Santiago")
+                .name("Santiago-" + id)
                 .lastName("Cabo")
                 .verified(true)
                 .build();
@@ -58,7 +71,7 @@ public class JWTApiController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new AuthenticationResponseDTO("Error Authenticating"));
         }
-        String jwtToken = "dummyToken";
+        String jwtToken = tokenManager.generateToken(request.getUser());
         return ResponseEntity.ok(new AuthenticationResponseDTO(jwtToken));
     }
 

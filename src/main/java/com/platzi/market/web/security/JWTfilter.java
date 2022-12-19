@@ -16,6 +16,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Map;
 
 @Component
 public class JWTfilter extends OncePerRequestFilter {
@@ -25,6 +26,9 @@ public class JWTfilter extends OncePerRequestFilter {
     @Autowired
     private JWTUserDetailsService userDetailsService;
 
+    @Autowired
+    private TokenManager tokenManager;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -32,11 +36,14 @@ public class JWTfilter extends OncePerRequestFilter {
 
         String token = request.getHeader("Authorization");
 
+        String idFromReq = request.getRequestURI().replace("/user/","");
+
         if(token == null) {
             logger.info("Request without token");
         }
-        else {
-            UserDetails userDetails = userDetailsService.loadUserByUsername("santi");
+        else if(tokenManager.validateToken(token, idFromReq)) {
+            String username = tokenManager.getUsernameFromToken(token);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
             UsernamePasswordAuthenticationToken authenticationToken =
                     new UsernamePasswordAuthenticationToken(
